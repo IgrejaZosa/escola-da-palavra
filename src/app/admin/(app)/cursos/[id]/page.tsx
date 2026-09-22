@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { buscarDadosTurma } from "@/lib/dados-turma";
-import { TurmaIndicadoresTable } from "@/components/TurmaIndicadoresTable";
+import { TurmaGerenciavel } from "@/components/TurmaGerenciavel";
 import { TurmaProfessoresManager } from "@/components/TurmaProfessoresManager";
 import { MateriaisList } from "@/components/MateriaisList";
 import { MaterialUploadForm } from "@/components/MaterialUploadForm";
@@ -62,16 +62,13 @@ export default async function AdminCursoPage({ params }: { params: Promise<{ id:
             <div className="flex items-center justify-between flex-wrap gap-2">
               <h2 className="text-sm font-semibold text-zosa-ink">Turma das {turma.horario}</h2>
               <div className="flex gap-2">
-                <Link href={`/admin/turmas/${turma.id}/gerenciar`} className="text-sm text-zosa-teal hover:underline">
-                  Gerenciar alunos
-                </Link>
                 <Link href={`/admin/turmas/${turma.id}/qrcode`} className="text-sm text-zosa-teal hover:underline">
                   QR code de presença
                 </Link>
               </div>
             </div>
             <TurmaProfessoresManager turmaId={turma.id} atribuidos={atribuidos} todosProfessores={(professores ?? []) as Usuario[]} />
-            <TurmaIndicadoresTable dados={dados} />
+            <TurmaGerenciavel turmaId={turma.id} dados={dados} />
           </section>
         );
       })}
