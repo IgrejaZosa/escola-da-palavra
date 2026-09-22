@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Logo } from "@/components/Logo";
+import { LogoBand } from "@/components/LogoBand";
 import { Badge } from "@/components/Badge";
 import { MateriaisList } from "@/components/MateriaisList";
 import {
@@ -39,8 +39,9 @@ export default async function AlunoDashboardPage({ params }: { params: Promise<{
   const aprovacao = calcularAprovacao(freq.faltas, matricula.nota, (curso as Curso).nota_minima);
 
   return (
-    <main className="min-h-screen flex flex-col items-center px-4 py-8 gap-6">
-      <Logo heightClassName="h-10" />
+    <main className="min-h-screen flex flex-col items-center">
+      <LogoBand heightClassName="h-12" />
+      <div className="w-full flex flex-col items-center px-4 py-8 gap-6">
       <div className="w-full max-w-md space-y-6">
         <div className="text-center">
           <h1 className="text-lg font-semibold text-zosa-ink">{pessoa.nome}</h1>
@@ -88,6 +89,7 @@ export default async function AlunoDashboardPage({ params }: { params: Promise<{
         <p className="text-center text-xs text-zosa-muted">
           Não é você? <Link href="/aluno" className="text-zosa-teal hover:underline">Buscar outro nome</Link>
         </p>
+      </div>
       </div>
     </main>
   );
