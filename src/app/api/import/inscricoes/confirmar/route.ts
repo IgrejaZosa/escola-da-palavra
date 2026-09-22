@@ -12,6 +12,9 @@ interface Registro {
   horario: Horario | null;
 }
 
+/** Faz tudo em lote (poucas idas ao banco no total, não uma por linha da
+ * planilha) — com centenas de inscrições, um loop com await por pessoa
+ * facilmente estoura o tempo limite da function serverless. */
 export async function POST(request: NextRequest) {
   const { erro } = await exigirUsuario("admin");
   if (erro) return erro;
@@ -30,14 +33,9 @@ export async function POST(request: NextRequest) {
     : { data: [] };
   const turmaPorCursoEHorario = new Map((turmas ?? []).map((t) => [`${t.curso_id}|${t.horario}`, t.id as string]));
 
-  const { data: pessoasExistentes } = await supabase.from("pessoas").select("*");
-  const pessoaPorNome = new Map((pessoasExistentes ?? []).map((p) => [normalizar(p.nome as string), p]));
-
-  let criadas = 0;
-  let jaExistiam = 0;
   let semCurso = 0;
   let semHorario = 0;
-
+  const validos: { registro: Registro; turmaId: string }[] = [];
   for (const registro of registros) {
     if (!registro.curso_id) {
       semCurso++;
@@ -52,31 +50,56 @@ export async function POST(request: NextRequest) {
       semCurso++;
       continue;
     }
+    validos.push({ registro, turmaId });
+  }
 
+  const { data: pessoasExistentes, error: erroPessoas } = await supabase.from("pessoas").select("*");
+  if (erroPessoas) return erroJson(erroPessoas.message, 500);
+  const pessoaPorNome = new Map((pessoasExistentes ?? []).map((p) => [normalizar(p.nome as string), p]));
+
+  // Cria de uma vez só as pessoas que ainda não existem (deduplicadas por
+  // nome normalizado, caso a planilha repita a mesma pessoa em mais de
+  // uma linha).
+  const novasPorChave = new Map<string, { nome: string; telefone: string | null; email: string | null }>();
+  for (const { registro } of validos) {
     const chave = normalizar(registro.nome);
-    let pessoa = pessoaPorNome.get(chave);
-    if (!pessoa) {
-      const { data: novaPessoa, error: erroPessoa } = await supabase
-        .from("pessoas")
-        .insert({ nome: registro.nome, telefone: registro.telefone, email: registro.email })
-        .select("*")
-        .single();
-      if (erroPessoa) continue;
-      pessoa = novaPessoa;
-      pessoaPorNome.set(chave, pessoa);
-    }
-
-    const { error: erroMatricula } = await supabase
-      .from("matriculas")
-      .insert({ pessoa_id: pessoa.id, turma_id: turmaId, rodada_id: rodadaId });
-
-    if (erroMatricula) {
-      // unique(pessoa_id, turma_id) violado = já estava matriculada nessa turma
-      jaExistiam++;
-    } else {
-      criadas++;
+    if (!pessoaPorNome.has(chave) && !novasPorChave.has(chave)) {
+      novasPorChave.set(chave, { nome: registro.nome, telefone: registro.telefone, email: registro.email });
     }
   }
+  if (novasPorChave.size > 0) {
+    const { data: criadas, error } = await supabase
+      .from("pessoas")
+      .insert([...novasPorChave.values()])
+      .select("*");
+    if (error) return erroJson(error.message, 500);
+    for (const p of criadas ?? []) pessoaPorNome.set(normalizar(p.nome as string), p);
+  }
+
+  // Monta as matrículas (deduplicadas por pessoa+turma dentro do próprio
+  // lote) e insere tudo numa única chamada, ignorando quem já estava
+  // matriculado (unique(pessoa_id, turma_id) via upsert + DO NOTHING).
+  const chavesVistas = new Set<string>();
+  const matriculas: { pessoa_id: string; turma_id: string; rodada_id: string }[] = [];
+  for (const { registro, turmaId } of validos) {
+    const pessoa = pessoaPorNome.get(normalizar(registro.nome));
+    if (!pessoa) continue;
+    const chave = `${pessoa.id}|${turmaId}`;
+    if (chavesVistas.has(chave)) continue;
+    chavesVistas.add(chave);
+    matriculas.push({ pessoa_id: pessoa.id, turma_id: turmaId, rodada_id: rodadaId });
+  }
+
+  let criadas = 0;
+  if (matriculas.length > 0) {
+    const { data, error } = await supabase
+      .from("matriculas")
+      .upsert(matriculas, { onConflict: "pessoa_id,turma_id", ignoreDuplicates: true })
+      .select("id");
+    if (error) return erroJson(error.message, 500);
+    criadas = data?.length ?? 0;
+  }
+  const jaExistiam = matriculas.length - criadas;
 
   return NextResponse.json({ criadas, jaExistiam, semCurso, semHorario });
 }

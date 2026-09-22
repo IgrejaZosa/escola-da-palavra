@@ -8,6 +8,9 @@ interface Registro {
   nota: number;
 }
 
+/** Lança todas as notas numa única chamada ao banco (upsert por id) em vez
+ * de um UPDATE por linha — com uma turma inteira de notas, um loop com
+ * await por pessoa pode estourar o tempo limite da function serverless. */
 export async function POST(request: NextRequest) {
   const { erro } = await exigirUsuario("admin");
   if (erro) return erro;
@@ -30,17 +33,22 @@ export async function POST(request: NextRequest) {
     (matriculas ?? []).map((m) => [normalizar((m as unknown as { pessoa: { nome: string } }).pessoa.nome), m.id as string])
   );
 
-  let atualizadas = 0;
   const naoEncontradas: string[] = [];
-
+  const atualizacoes: { id: string; nota: number }[] = [];
   for (const registro of registros) {
     const matriculaId = matriculaPorNome.get(normalizar(registro.nome));
     if (!matriculaId) {
       naoEncontradas.push(registro.nome);
       continue;
     }
-    const { error } = await supabase.from("matriculas").update({ nota: registro.nota }).eq("id", matriculaId);
-    if (!error) atualizadas++;
+    atualizacoes.push({ id: matriculaId, nota: registro.nota });
+  }
+
+  let atualizadas = 0;
+  if (atualizacoes.length > 0) {
+    const { data, error } = await supabase.from("matriculas").upsert(atualizacoes, { onConflict: "id" }).select("id");
+    if (error) return erroJson(error.message, 500);
+    atualizadas = data?.length ?? 0;
   }
 
   return NextResponse.json({ atualizadas, naoEncontradas });
