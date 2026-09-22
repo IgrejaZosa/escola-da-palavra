@@ -1,0 +1,133 @@
+@import "tailwindcss";
+
+:root {
+  /* Identidade Escola da Palavra */
+  --color-ep-dark: #1c5b54;
+  --color-ep-teal: #36afaf;
+  --color-ep-tealsoft: #71b9b7;
+  --color-ep-tealmid: #287176;
+  --color-ep-tealbg: #d4e7e7;
+  --color-ep-cream: #f6faf9;
+  --color-ep-ink: #1f2430;
+  --color-ep-muted: #5b6472;
+  --color-ep-border: #dfe6e5;
+
+  /* Aliases genéricos (mesma convenção dos outros apps da Zōsa, pra
+     componentes compartilhados/copiados entre projetos funcionarem sem
+     precisar reescrever classes) */
+  --color-zosa-dark: var(--color-ep-dark);
+  --color-zosa-teal: var(--color-ep-teal);
+  --color-zosa-tealsoft: var(--color-ep-tealsoft);
+  --color-zosa-tealbg: var(--color-ep-tealbg);
+  --color-zosa-cream: var(--color-ep-cream);
+  --color-zosa-ink: var(--color-ep-ink);
+  --color-zosa-muted: var(--color-ep-muted);
+  --color-zosa-border: var(--color-ep-border);
+
+  /* Status de frequência/aprovação */
+  --color-ok: #1f8a4c;
+  --color-ok-bg: #def7e3;
+  --color-warn: #c9922e;
+  --color-warn-bg: #fff3d6;
+  --color-risco: #d9752e;
+  --color-risco-bg: #ffe4cc;
+  --color-danger: #c0392b;
+  --color-danger-bg: #fbe0dd;
+
+  --background: #ffffff;
+  --foreground: var(--color-ep-ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-zosa-dark: var(--color-zosa-dark);
+  --color-zosa-teal: var(--color-zosa-teal);
+  --color-zosa-tealsoft: var(--color-zosa-tealsoft);
+  --color-zosa-tealbg: var(--color-zosa-tealbg);
+  --color-zosa-cream: var(--color-zosa-cream);
+  --color-zosa-ink: var(--color-zosa-ink);
+  --color-zosa-muted: var(--color-zosa-muted);
+  --color-zosa-border: var(--color-zosa-border);
+
+  --color-ep-dark: var(--color-ep-dark);
+  --color-ep-teal: var(--color-ep-teal);
+  --color-ep-tealsoft: var(--color-ep-tealsoft);
+  --color-ep-tealmid: var(--color-ep-tealmid);
+  --color-ep-tealbg: var(--color-ep-tealbg);
+  --color-ep-cream: var(--color-ep-cream);
+
+  --color-ok: var(--color-ok);
+  --color-ok-bg: var(--color-ok-bg);
+  --color-warn: var(--color-warn);
+  --color-warn-bg: var(--color-warn-bg);
+  --color-risco: var(--color-risco);
+  --color-risco-bg: var(--color-risco-bg);
+  --color-danger: var(--color-danger);
+  --color-danger-bg: var(--color-danger-bg);
+}
+
+body {
+  background: var(--color-zosa-cream);
+  color: var(--color-zosa-ink);
+  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+@layer components {
+  .card {
+    @apply bg-white border border-zosa-border rounded-xl shadow-sm;
+  }
+  .btn-primary {
+    @apply btn bg-zosa-dark text-white hover:bg-zosa-teal;
+  }
+  .btn-secondary {
+    @apply btn bg-white text-zosa-ink border border-zosa-border hover:bg-zosa-cream;
+  }
+  .btn-danger {
+    @apply btn bg-danger text-white hover:opacity-90;
+  }
+  .btn-ghost {
+    @apply btn bg-transparent text-zosa-muted hover:bg-zosa-cream;
+  }
+  .input {
+    @apply w-full rounded-lg border border-zosa-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-zosa-teal;
+  }
+  .label {
+    @apply block text-xs font-medium text-zosa-muted mb-1;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap;
+  }
+}
+
+@media print {
+  header,
+  .no-print {
+    display: none !important;
+  }
+  main {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .grid {
+    display: block !important;
+  }
+  .grid > * {
+    margin-bottom: 12px;
+  }
+  .card {
+    margin-bottom: 14px !important;
+    break-inside: avoid;
+  }
+}
