@@ -23,6 +23,8 @@ export default async function RodadaIndicadoresPage({ params }: { params: Promis
     comFrequencia.length > 0
       ? Math.round((comFrequencia.reduce((s, r) => s + (r.frequenciaMedia ?? 0), 0) / comFrequencia.length) * 10) / 10
       : null;
+  const totalManha = resumos.reduce((s, r) => s + r.porHorario["08h"], 0);
+  const totalTarde = resumos.reduce((s, r) => s + r.porHorario["16h30"], 0);
 
   return (
     <div className="space-y-6">
@@ -31,10 +33,12 @@ export default async function RodadaIndicadoresPage({ params }: { params: Promis
         <p className="text-sm text-zosa-muted">Os 3 cursos da rodada, lado a lado.</p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <StatCard label="Total de inscritos" value={totalInscritos} emoji="👥" />
         <StatCard label="Frequência média geral" value={frequenciaMediaGeral !== null ? `${frequenciaMediaGeral}%` : "—"} emoji="📊" />
         <StatCard label="Cursos na rodada" value={resumos.length} emoji="📚" />
+        <StatCard label="Inscritos manhã (08h)" value={totalManha} emoji="🌅" />
+        <StatCard label="Inscritos tarde (16h30)" value={totalTarde} emoji="🌇" />
       </div>
 
       {resumos.length > 0 && <MacroCursosChart resumos={resumos} />}
@@ -44,6 +48,7 @@ export default async function RodadaIndicadoresPage({ params }: { params: Promis
           <div key={r.curso.id} className="card p-4 space-y-2">
             <p className="font-medium text-zosa-ink">{r.curso.nome}</p>
             <p className="text-xs text-zosa-muted">{r.totalAtivos} inscritos · frequência média {r.frequenciaMedia !== null ? `${r.frequenciaMedia}%` : "—"}</p>
+            <p className="text-xs text-zosa-muted">🌅 {r.porHorario["08h"]} de manhã · 🌇 {r.porHorario["16h30"]} de tarde</p>
             <div className="text-xs text-zosa-muted space-y-0.5">
               <p>✅ Aprovados: {r.aprovados}</p>
               <p>⏳ Aguardando nota: {r.aguardandoNota}</p>

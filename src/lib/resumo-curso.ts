@@ -1,7 +1,7 @@
 import { buscarDadosTurma } from "@/lib/dados-turma";
 import { calcularAprovacao, calcularFrequencia } from "@/lib/frequencia";
 import { createClient } from "@/lib/supabase/server";
-import type { Curso, Turma } from "@/lib/types";
+import { HORARIOS, type Curso, type Horario, type Turma } from "@/lib/types";
 
 export interface ResumoCurso {
   curso: Curso;
@@ -11,6 +11,7 @@ export interface ResumoCurso {
   reprovadosFalta: number;
   reprovadosNota: number;
   aguardandoNota: number;
+  porHorario: Record<Horario, number>;
 }
 
 /** Agrega os indicadores de um curso (as duas turmas juntas) num resumo
@@ -26,7 +27,7 @@ export async function resumirCurso(curso: Curso): Promise<ResumoCurso> {
       dados.matriculas.map((m) => {
         const freq = calcularFrequencia(dados.encontros, m.presencas);
         const aprovacao = calcularAprovacao(freq.faltas, m.nota, curso.nota_minima);
-        return { freq, aprovacao };
+        return { freq, aprovacao, horario: dados.turma.horario };
       })
     );
 
@@ -36,6 +37,10 @@ export async function resumirCurso(curso: Curso): Promise<ResumoCurso> {
       ? Math.round((comFrequencia.reduce((s, l) => s + (l.freq.percentual ?? 0), 0) / comFrequencia.length) * 10) / 10
       : null;
 
+  const porHorario = Object.fromEntries(
+    HORARIOS.map((h) => [h, linhas.filter((l) => l.horario === h).length])
+  ) as Record<Horario, number>;
+
   return {
     curso,
     totalAtivos: linhas.length,
@@ -44,5 +49,6 @@ export async function resumirCurso(curso: Curso): Promise<ResumoCurso> {
     reprovadosFalta: linhas.filter((l) => l.aprovacao === "reprovado_falta").length,
     reprovadosNota: linhas.filter((l) => l.aprovacao === "reprovado_nota").length,
     aguardandoNota: linhas.filter((l) => l.aprovacao === "aguardando_nota").length,
+    porHorario,
   };
 }

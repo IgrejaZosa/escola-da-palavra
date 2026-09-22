@@ -11,7 +11,7 @@ import {
   STATUS_FREQUENCIA_COLORS,
   STATUS_FREQUENCIA_LABELS,
 } from "@/lib/frequencia";
-import type { Curso, Turma } from "@/lib/types";
+import { HORARIOS, type Curso, type Turma } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -51,6 +51,16 @@ export default async function CursoIndicadoresPage({ params }: { params: Promise
 
   const emRiscoOrdenados = [...emRisco].sort((a, b) => b.freq.faltas - a.freq.faltas);
 
+  const porTurma = HORARIOS.map((horario) => {
+    const doHorario = linhas.filter((l) => l.turma.horario === horario);
+    const comFreq = doHorario.filter((l) => l.freq.percentual !== null);
+    const freqMedia =
+      comFreq.length > 0
+        ? Math.round((comFreq.reduce((s, l) => s + (l.freq.percentual ?? 0), 0) / comFreq.length) * 10) / 10
+        : null;
+    return { horario, total: doHorario.length, freqMedia };
+  });
+
   return (
     <div className="space-y-6">
       <div>
@@ -64,6 +74,21 @@ export default async function CursoIndicadoresPage({ params }: { params: Promise
         <StatCard label="Aprovados até agora" value={aprovados} emoji="✅" />
         <StatCard label="Reprovados" value={reprovados} emoji="⛔" />
       </div>
+
+      <section className="space-y-2">
+        <h2 className="text-sm font-semibold text-zosa-ink">Inscritos por turma</h2>
+        <div className="grid grid-cols-2 gap-3">
+          {porTurma.map((t) => (
+            <div key={t.horario} className="card p-4">
+              <p className="text-xs font-medium text-zosa-muted">{t.horario === "08h" ? "🌅 Manhã (08h)" : "🌇 Tarde (16h30)"}</p>
+              <p className="text-2xl font-bold text-zosa-ink mt-1">{t.total}</p>
+              <p className="text-xs text-zosa-muted mt-0.5">
+                frequência média {t.freqMedia !== null ? `${t.freqMedia}%` : "—"}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-zosa-ink">
