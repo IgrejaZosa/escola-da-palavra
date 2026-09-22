@@ -9,8 +9,8 @@ export default async function AdminUsuariosPage() {
   const { data } = await supabase.from("usuarios").select("*").order("nome");
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-lg font-semibold text-zosa-ink">Professores e administradores</h1>
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold text-ep-dark">Professores e administradores</h1>
       <UsuariosManager usuarios={(data ?? []) as Usuario[]} />
     </div>
   );
