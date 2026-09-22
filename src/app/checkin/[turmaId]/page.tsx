@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { LogoBand } from "@/components/LogoBand";
 import { CheckinList } from "@/components/CheckinList";
 import { buscarDadosTurma } from "@/lib/dados-turma";
+import { encontroMaisRelevante } from "@/lib/encontros";
 
 export const dynamic = "force-dynamic";
 
@@ -10,8 +11,10 @@ export default async function CheckinPage({ params }: { params: Promise<{ turmaI
   const dados = await buscarDadosTurma(turmaId);
   if (!dados) notFound();
 
-  const hojeIso = new Date().toISOString().slice(0, 10);
-  const encontroHoje = dados.encontros.find((e) => e.data === hojeIso);
+  // Não precisa ser acessado exatamente no dia/horário da aula — a
+  // presença marcada aqui conta sempre pro encontro mais recente da
+  // turma (o domingo que já aconteceu), não pro dia real do acesso.
+  const encontro = encontroMaisRelevante(dados.encontros);
 
   return (
     <main className="min-h-screen flex flex-col items-center">
@@ -22,18 +25,22 @@ export default async function CheckinPage({ params }: { params: Promise<{ turmaI
           <p className="text-sm text-zosa-muted">Turma das {dados.turma.horario}</p>
         </div>
 
-        {!encontroHoje ? (
+        {!encontro ? (
           <p className="card p-6 text-sm text-zosa-muted max-w-md text-center">
-            Não há encontro desta turma marcado para hoje.
+            Nenhum encontro gerado ainda para esta turma.
           </p>
         ) : (
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md space-y-3">
+            <p className="text-xs text-zosa-muted text-center">
+              Registrando presença do encontro de{" "}
+              {new Date(`${encontro.data}T00:00:00`).toLocaleDateString("pt-BR")}
+            </p>
             <CheckinList
-              encontroId={encontroHoje.id}
+              encontroId={encontro.id}
               pessoas={dados.matriculas.map((m) => ({
                 matriculaId: m.id,
                 nome: m.pessoa.nome,
-                jaPresente: m.presencas.some((p) => p.encontro_id === encontroHoje.id && p.presente),
+                jaPresente: m.presencas.some((p) => p.encontro_id === encontro.id && p.presente),
               }))}
             />
           </div>

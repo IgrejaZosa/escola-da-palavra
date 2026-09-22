@@ -2,10 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { erroJson } from "@/lib/api-helpers";
 import { createServiceClient } from "@/lib/supabase/server";
 
-/** Rota pública (sem login — é o autoatendimento do QR code). Ainda assim
- * valida no servidor que o encontro é de hoje e pertence à mesma turma da
- * matrícula, pra um link/POST forjado não conseguir marcar presença em
- * outro dia ou puxar alguém de outra turma. */
+/** Rota pública (sem login — é o autoatendimento do QR code). Não exige que
+ * o encontro seja "de hoje" de propósito: dá pra acessar o link fora do
+ * dia/horário exato da aula (ex: corrigir um esquecimento na segunda) e a
+ * presença ainda conta pro encontro certo - quem decide qual encontro é
+ * esse é o servidor (`encontroMaisRelevante`, calculado na própria página
+ * de check-in), não o cliente. `marcado_em` (default now() no banco)
+ * continua guardando o momento real em que a pessoa registrou. Ainda
+ * valida que a matrícula pertence à mesma turma do encontro, pra um POST
+ * forjado não conseguir puxar alguém de outra turma. */
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   const matriculaId = body.matricula_id as string | undefined;
@@ -16,9 +21,6 @@ export async function POST(request: NextRequest) {
 
   const { data: encontro } = await supabase.from("encontros").select("*").eq("id", encontroId).single();
   if (!encontro) return erroJson("Encontro não encontrado.", 404);
-
-  const hojeIso = new Date().toISOString().slice(0, 10);
-  if (encontro.data !== hojeIso) return erroJson("Este encontro não é o de hoje.", 400);
 
   const { data: matricula } = await supabase.from("matriculas").select("*").eq("id", matriculaId).single();
   if (!matricula || matricula.turma_id !== encontro.turma_id) {
