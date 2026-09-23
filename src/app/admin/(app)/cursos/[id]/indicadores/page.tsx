@@ -11,6 +11,7 @@ import {
   STATUS_FREQUENCIA_COLORS,
   STATUS_FREQUENCIA_LABELS,
 } from "@/lib/frequencia";
+import { TurmaFrequenciaEncontros } from "@/components/TurmaFrequenciaEncontros";
 import { HORARIOS, type Curso, type Turma } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -88,6 +89,24 @@ export default async function CursoIndicadoresPage({ params }: { params: Promise
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-sm font-semibold text-zosa-ink">Frequência por encontro</h2>
+          <p className="text-xs text-zosa-muted">
+            Clique num encontro pra ver quem esteve presente e quem faltou naquele dia — dá pra corrigir na hora se
+            alguém esqueceu de marcar.
+          </p>
+        </div>
+        {dadosPorTurma
+          .filter((d): d is NonNullable<typeof d> => !!d)
+          .map((dados) => (
+            <div key={dados.turma.id} className="space-y-1.5">
+              <p className="text-xs font-medium text-zosa-muted">Turma das {dados.turma.horario}</p>
+              <TurmaFrequenciaEncontros dados={dados} />
+            </div>
+          ))}
       </section>
 
       <section className="space-y-2">
