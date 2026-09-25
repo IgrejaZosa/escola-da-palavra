@@ -11,6 +11,7 @@ import {
   STATUS_FREQUENCIA_LABELS,
 } from "@/lib/frequencia";
 import { Badge } from "@/components/Badge";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import type { DadosTurma } from "@/lib/dados-turma";
 
 /** Igual ao TurmaIndicadoresTable, mas com adicionar/remover aluno embutido
@@ -124,7 +125,10 @@ export function TurmaGerenciavel({ turmaId, dados }: { turmaId: string; dados: D
                 const aprovacao = calcularAprovacao(freq.faltas, m.nota, curso.nota_minima);
                 return (
                   <tr key={m.id} className="border-b border-zosa-border last:border-0">
-                    <td className="px-4 py-2.5 font-medium text-zosa-ink whitespace-nowrap">{m.pessoa.nome}</td>
+                    <td className="px-4 py-2.5 whitespace-nowrap">
+                      <p className="font-medium text-zosa-ink">{m.pessoa.nome}</p>
+                      <WhatsAppLink telefone={m.pessoa.telefone} nome={m.pessoa.nome} />
+                    </td>
                     <td className="px-4 py-2.5 whitespace-nowrap">
                       {freq.percentual !== null ? `${freq.percentual}%` : "—"}
                       <span className="text-zosa-muted"> ({freq.presencas}/{freq.encontrosRealizados})</span>

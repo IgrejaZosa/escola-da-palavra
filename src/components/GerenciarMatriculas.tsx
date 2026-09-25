@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import type { MatriculaComDados } from "@/lib/dados-turma";
 
 export function GerenciarMatriculas({ turmaId, matriculas }: { turmaId: string; matriculas: MatriculaComDados[] }) {
@@ -75,7 +76,10 @@ export function GerenciarMatriculas({ turmaId, matriculas }: { turmaId: string; 
       <div className="card divide-y divide-zosa-border">
         {matriculas.map((m) => (
           <div key={m.id} className="px-4 py-2.5 flex items-center justify-between gap-3">
-            <span className="text-sm text-zosa-ink">{m.pessoa.nome}</span>
+            <div>
+              <span className="text-sm text-zosa-ink block">{m.pessoa.nome}</span>
+              <WhatsAppLink telefone={m.pessoa.telefone} nome={m.pessoa.nome} />
+            </div>
             <button
               onClick={() => retirar(m.id)}
               disabled={removendoId === m.id}

@@ -3,6 +3,7 @@
 import { Fragment, useState } from "react";
 import { useRouter } from "next/navigation";
 import { resumoPorEncontro } from "@/lib/frequencia-por-encontro";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import type { DadosTurma, MatriculaComDados } from "@/lib/dados-turma";
 
 export function TurmaFrequenciaEncontros({ dados }: { dados: DadosTurma }) {
@@ -110,17 +111,20 @@ function ListaPessoas({
       {pessoas.length === 0 ? (
         <p className="text-xs text-zosa-muted">Ninguém.</p>
       ) : (
-        <ul className="space-y-1 max-h-64 overflow-y-auto">
+        <ul className="space-y-1.5 max-h-64 overflow-y-auto">
           {pessoas.map((m) => (
             <li key={m.id} className="flex items-center justify-between gap-2 text-sm">
-              <span className="text-zosa-ink truncate">{m.pessoa.nome}</span>
+              <div className="min-w-0">
+                <p className="text-zosa-ink truncate">{m.pessoa.nome}</p>
+                <WhatsAppLink telefone={m.pessoa.telefone} nome={m.pessoa.nome} />
+              </div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onAlterar(m.id);
                 }}
                 disabled={alterandoId === m.id}
-                className="text-xs text-zosa-teal hover:underline whitespace-nowrap disabled:opacity-50"
+                className="text-xs text-zosa-teal hover:underline whitespace-nowrap disabled:opacity-50 shrink-0"
               >
                 {alterandoId === m.id ? "..." : rotuloAcao}
               </button>

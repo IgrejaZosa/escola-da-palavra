@@ -12,6 +12,7 @@ import {
   STATUS_FREQUENCIA_LABELS,
 } from "@/lib/frequencia";
 import { TurmaFrequenciaEncontros } from "@/components/TurmaFrequenciaEncontros";
+import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { HORARIOS, type Curso, type Turma } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -127,8 +128,8 @@ export default async function CursoIndicadoresPage({ params }: { params: Promise
                   <p className="text-sm font-medium text-zosa-ink">{l.matricula.pessoa.nome}</p>
                   <p className="text-xs text-zosa-muted">
                     Turma das {l.turma.horario} · {l.freq.faltas} falta(s)
-                    {l.matricula.pessoa.telefone ? ` · ${l.matricula.pessoa.telefone}` : ""}
                   </p>
+                  <WhatsAppLink telefone={l.matricula.pessoa.telefone} nome={l.matricula.pessoa.nome} />
                 </div>
                 <Badge
                   label={STATUS_FREQUENCIA_LABELS[l.freq.status]}
@@ -157,7 +158,10 @@ export default async function CursoIndicadoresPage({ params }: { params: Promise
             <tbody>
               {linhas.map((l) => (
                 <tr key={l.matricula.id} className="border-b border-zosa-border last:border-0">
-                  <td className="px-4 py-2.5 font-medium text-zosa-ink whitespace-nowrap">{l.matricula.pessoa.nome}</td>
+                  <td className="px-4 py-2.5 whitespace-nowrap">
+                    <p className="font-medium text-zosa-ink">{l.matricula.pessoa.nome}</p>
+                    <WhatsAppLink telefone={l.matricula.pessoa.telefone} nome={l.matricula.pessoa.nome} />
+                  </td>
                   <td className="px-4 py-2.5">{l.turma.horario}</td>
                   <td className="px-4 py-2.5">{l.freq.faltas}</td>
                   <td className="px-4 py-2.5">{l.matricula.nota !== null ? l.matricula.nota.toFixed(1) : "—"}</td>
