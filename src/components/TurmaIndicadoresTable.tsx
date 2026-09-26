@@ -8,6 +8,7 @@ import {
 } from "@/lib/frequencia";
 import { Badge } from "@/components/Badge";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+import { JustificativaBadges } from "@/components/JustificativaBadges";
 import type { DadosTurma } from "@/lib/dados-turma";
 
 /** Tabela de frequência/nota/aprovação por pessoa de uma turma — usada tanto
@@ -30,6 +31,7 @@ export function TurmaIndicadoresTable({ dados }: { dados: DadosTurma }) {
             <th className="px-4 py-2 font-medium">Nota</th>
             <th className="px-4 py-2 font-medium">Situação de frequência</th>
             <th className="px-4 py-2 font-medium">Aprovação</th>
+            <th className="px-4 py-2 font-medium">Justificativas</th>
           </tr>
         </thead>
         <tbody>
@@ -61,6 +63,9 @@ export function TurmaIndicadoresTable({ dados }: { dados: DadosTurma }) {
                     fg={STATUS_APROVACAO_COLORS[aprovacao].fg}
                     bg={STATUS_APROVACAO_COLORS[aprovacao].bg}
                   />
+                </td>
+                <td className="px-4 py-2.5">
+                  <JustificativaBadges justificativas={m.justificativas} encontros={encontros} />
                 </td>
               </tr>
             );

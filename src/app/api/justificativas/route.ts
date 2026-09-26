@@ -29,6 +29,14 @@ export async function POST(request: NextRequest) {
     return erroJson("Matrícula não pertence a esta turma.", 400);
   }
 
+  const { data: presenca } = await supabase
+    .from("presencas")
+    .select("presente")
+    .eq("matricula_id", matriculaId)
+    .eq("encontro_id", encontroId)
+    .maybeSingle();
+  if (presenca?.presente) return erroJson("Você já tem presença registrada nesse dia — não há falta pra justificar.", 400);
+
   const { data, error } = await supabase
     .from("justificativas")
     .upsert(

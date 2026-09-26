@@ -21,3 +21,17 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (error) return erroJson(error.message, 500);
   return NextResponse.json(data);
 }
+
+/** Exclui o curso e, em cascata (FK), suas turmas, matrículas, presenças,
+ * justificativas e materiais — ação destrutiva, a confirmação fica a cargo
+ * da tela que chama. */
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { erro } = await exigirUsuario("admin");
+  if (erro) return erro;
+
+  const { id } = await params;
+  const supabase = createServiceClient();
+  const { error } = await supabase.from("cursos").delete().eq("id", id);
+  if (error) return erroJson(error.message, 500);
+  return NextResponse.json({ ok: true });
+}

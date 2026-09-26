@@ -111,6 +111,18 @@ export interface Justificativa {
   created_at: string;
 }
 
+export const STATUS_JUSTIFICATIVA_LABELS: Record<StatusJustificativa, string> = {
+  pendente: "Aguardando validação do admin",
+  aprovada: "Aprovada",
+  rejeitada: "Rejeitada",
+};
+
+export const STATUS_JUSTIFICATIVA_COLORS: Record<StatusJustificativa, { fg: string; bg: string }> = {
+  pendente: { fg: "var(--color-warn)", bg: "var(--color-warn-bg)" },
+  aprovada: { fg: "var(--color-ok)", bg: "var(--color-ok-bg)" },
+  rejeitada: { fg: "var(--color-danger)", bg: "var(--color-danger-bg)" },
+};
+
 // ─── Tipos compostos usados nas telas ───────────────────────────────────────
 
 export interface TurmaComCurso extends Turma {

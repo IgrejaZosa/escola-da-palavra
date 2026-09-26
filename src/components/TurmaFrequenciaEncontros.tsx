@@ -5,14 +5,8 @@ import { useRouter } from "next/navigation";
 import { resumoPorEncontro } from "@/lib/frequencia-por-encontro";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
 import { Badge } from "@/components/Badge";
-import { MOTIVO_JUSTIFICATIVA_LABELS } from "@/lib/types";
+import { MOTIVO_JUSTIFICATIVA_LABELS, STATUS_JUSTIFICATIVA_COLORS } from "@/lib/types";
 import type { DadosTurma, MatriculaComDados } from "@/lib/dados-turma";
-
-const STATUS_JUSTIFICATIVA_COLORS = {
-  pendente: { fg: "var(--color-warn)", bg: "var(--color-warn-bg)" },
-  aprovada: { fg: "var(--color-ok)", bg: "var(--color-ok-bg)" },
-  rejeitada: { fg: "var(--color-danger)", bg: "var(--color-danger-bg)" },
-} as const;
 
 export function TurmaFrequenciaEncontros({ dados }: { dados: DadosTurma }) {
   const router = useRouter();

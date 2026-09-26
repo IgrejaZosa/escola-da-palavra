@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { CriarCursoForm } from "@/components/CriarCursoForm";
 import { RodadaActions } from "@/components/RodadaActions";
+import { EditarRodadaForm } from "@/components/EditarRodadaForm";
+import { ExcluirCursoButton } from "@/components/ExcluirCursoButton";
 import { Badge } from "@/components/Badge";
 import type { Curso, Rodada } from "@/lib/types";
 
@@ -40,7 +42,10 @@ export default async function AdminRodadaPage({ params }: { params: Promise<{ id
         </div>
       </div>
 
-      <RodadaActions rodada={rodada as Rodada} temCursos={(cursos ?? []).length > 0} />
+      <div className="flex flex-wrap gap-2">
+        <RodadaActions rodada={rodada as Rodada} temCursos={(cursos ?? []).length > 0} />
+        <EditarRodadaForm rodada={rodada as Rodada} />
+      </div>
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
@@ -48,9 +53,16 @@ export default async function AdminRodadaPage({ params }: { params: Promise<{ id
         </div>
         <div className="grid sm:grid-cols-3 gap-3">
           {((cursos ?? []) as Curso[]).map((c) => (
-            <Link key={c.id} href={`/admin/cursos/${c.id}`} className="card p-4 hover:border-zosa-teal transition-colors">
-              <p className="font-medium text-zosa-ink">{c.nome}</p>
-              <p className="text-xs text-zosa-muted mt-1">Nota mínima: {c.nota_minima.toFixed(1)}</p>
+            <Link
+              key={c.id}
+              href={`/admin/cursos/${c.id}`}
+              className="card p-4 hover:border-zosa-teal transition-colors space-y-2"
+            >
+              <div>
+                <p className="font-medium text-zosa-ink">{c.nome}</p>
+                <p className="text-xs text-zosa-muted mt-1">Nota mínima: {c.nota_minima.toFixed(1)}</p>
+              </div>
+              <ExcluirCursoButton cursoId={c.id} cursoNome={c.nome} />
             </Link>
           ))}
         </div>

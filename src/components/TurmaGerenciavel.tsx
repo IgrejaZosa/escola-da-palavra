@@ -12,6 +12,7 @@ import {
 } from "@/lib/frequencia";
 import { Badge } from "@/components/Badge";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+import { JustificativaBadges } from "@/components/JustificativaBadges";
 import type { DadosTurma } from "@/lib/dados-turma";
 
 /** Igual ao TurmaIndicadoresTable, mas com adicionar/remover aluno embutido
@@ -116,6 +117,7 @@ export function TurmaGerenciavel({ turmaId, dados }: { turmaId: string; dados: D
                 <th className="px-4 py-2 font-medium">Nota</th>
                 <th className="px-4 py-2 font-medium">Situação de frequência</th>
                 <th className="px-4 py-2 font-medium">Aprovação</th>
+                <th className="px-4 py-2 font-medium">Justificativas</th>
                 <th className="px-4 py-2 font-medium"></th>
               </tr>
             </thead>
@@ -148,6 +150,9 @@ export function TurmaGerenciavel({ turmaId, dados }: { turmaId: string; dados: D
                         fg={STATUS_APROVACAO_COLORS[aprovacao].fg}
                         bg={STATUS_APROVACAO_COLORS[aprovacao].bg}
                       />
+                    </td>
+                    <td className="px-4 py-2.5">
+                      <JustificativaBadges justificativas={m.justificativas} encontros={encontros} />
                     </td>
                     <td className="px-4 py-2.5">
                       <button
