@@ -7,7 +7,7 @@ export function CriarCursoForm({ rodadaId }: { rodadaId: string }) {
   const router = useRouter();
   const [aberto, setAberto] = useState(false);
   const [nome, setNome] = useState("");
-  const [notaMinima, setNotaMinima] = useState("7.0");
+  const [notaMinima, setNotaMinima] = useState("60");
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -52,14 +52,14 @@ export function CriarCursoForm({ rodadaId }: { rodadaId: string }) {
       </div>
       <div>
         <label className="label" htmlFor="nota-minima">
-          Nota mínima de aprovação (0 a 10)
+          Nota mínima de aprovação (0 a 100)
         </label>
         <input
           id="nota-minima"
           type="number"
           min={0}
-          max={10}
-          step={0.1}
+          max={100}
+          step={1}
           required
           className="input"
           value={notaMinima}

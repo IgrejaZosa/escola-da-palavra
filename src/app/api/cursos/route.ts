@@ -14,9 +14,9 @@ export async function POST(request: NextRequest) {
   const rodadaId = body.rodada_id as string | undefined;
   const nome = (body.nome as string | undefined)?.trim();
   const descricao = (body.descricao as string | undefined)?.trim() || null;
-  const notaMinima = body.nota_minima !== undefined ? Number(body.nota_minima) : 7.0;
+  const notaMinima = body.nota_minima !== undefined ? Number(body.nota_minima) : 60;
   if (!rodadaId || !nome) return erroJson("Rodada e nome são obrigatórios.");
-  if (Number.isNaN(notaMinima) || notaMinima < 0 || notaMinima > 10) return erroJson("Nota mínima inválida.");
+  if (Number.isNaN(notaMinima) || notaMinima < 0 || notaMinima > 100) return erroJson("Nota mínima inválida.");
 
   const supabase = createServiceClient();
   const { data: curso, error } = await supabase

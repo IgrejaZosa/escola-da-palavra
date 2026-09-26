@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 
-export function QrCodeDisplay({ turmaId, titulo }: { turmaId: string; titulo: string }) {
+export function QrCodeDisplay({ cursoId, titulo }: { cursoId: string; titulo: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   // Começa vazio no servidor (window não existe lá) e só ganha valor depois
   // de montar no cliente — senão o texto renderizado no servidor (vazio)
@@ -14,8 +14,8 @@ export function QrCodeDisplay({ turmaId, titulo }: { turmaId: string; titulo: st
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- window.location só existe no cliente, precisa de um efeito pra sincronizar
-    setUrl(`${window.location.origin}/checkin/${turmaId}`);
-  }, [turmaId]);
+    setUrl(`${window.location.origin}/checkin/${cursoId}`);
+  }, [cursoId]);
 
   useEffect(() => {
     if (canvasRef.current && url) {

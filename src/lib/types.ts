@@ -91,6 +91,26 @@ export interface Material {
   created_at: string;
 }
 
+export type MotivoJustificativa = "ministerio" | "atestado" | "trabalho";
+export type StatusJustificativa = "pendente" | "aprovada" | "rejeitada";
+
+export const MOTIVO_JUSTIFICATIVA_LABELS: Record<MotivoJustificativa, string> = {
+  ministerio: "Servindo em ministério",
+  atestado: "Atestado médico",
+  trabalho: "Trabalho",
+};
+
+export interface Justificativa {
+  id: string;
+  matricula_id: string;
+  encontro_id: string;
+  motivo: MotivoJustificativa;
+  status: StatusJustificativa;
+  validado_por: string | null;
+  validado_em: string | null;
+  created_at: string;
+}
+
 // ─── Tipos compostos usados nas telas ───────────────────────────────────────
 
 export interface TurmaComCurso extends Turma {

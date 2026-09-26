@@ -31,8 +31,8 @@ export default async function CursoIndicadoresPage({ params }: { params: Promise
     .filter((d): d is NonNullable<typeof d> => !!d)
     .flatMap((dados) =>
       dados.matriculas.map((m) => {
-        const freq = calcularFrequencia(dados.encontros, m.presencas);
-        const aprovacao = calcularAprovacao(freq.faltas, m.nota, (curso as Curso).nota_minima);
+        const freq = calcularFrequencia(dados.encontros, m.presencas, m.justificativas);
+        const aprovacao = calcularAprovacao(freq, m.nota, (curso as Curso).nota_minima);
         return { matricula: m, turma: dados.turma, freq, aprovacao };
       })
     );
@@ -50,6 +50,7 @@ export default async function CursoIndicadoresPage({ params }: { params: Promise
   const aprovados = linhas.filter((l) => l.aprovacao === "aprovado").length;
   const reprovados = linhas.filter((l) => l.aprovacao === "reprovado_falta" || l.aprovacao === "reprovado_nota").length;
   const emRisco = linhas.filter((l) => l.freq.status === "atencao" || l.freq.status === "risco");
+  const paraRevisar = linhas.filter((l) => l.freq.status === "revisar");
 
   const emRiscoOrdenados = [...emRisco].sort((a, b) => b.freq.faltas - a.freq.faltas);
 
@@ -110,13 +111,44 @@ export default async function CursoIndicadoresPage({ params }: { params: Promise
           ))}
       </section>
 
+      {paraRevisar.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-sm font-semibold text-zosa-ink">
+            Precisa de revisão manual da frequência ({paraRevisar.length})
+          </h2>
+          <p className="text-xs text-zosa-muted">
+            Faltas justificadas e aprovadas empurraram o total além do permitido — decida manualmente se aprova ou
+            reprova por frequência.
+          </p>
+          <div className="card divide-y divide-zosa-border">
+            {paraRevisar.map((l) => (
+              <div key={l.matricula.id} className="px-4 py-2.5 flex items-center justify-between gap-3 flex-wrap">
+                <div>
+                  <p className="text-sm font-medium text-zosa-ink">{l.matricula.pessoa.nome}</p>
+                  <p className="text-xs text-zosa-muted">
+                    Turma das {l.turma.horario} · {l.freq.faltas} falta(s), {l.freq.faltasJustificadas} justificada(s)
+                    · limite: {l.freq.faltasPermitidas}
+                  </p>
+                  <WhatsAppLink telefone={l.matricula.pessoa.telefone} nome={l.matricula.pessoa.nome} />
+                </div>
+                <Badge
+                  label={STATUS_FREQUENCIA_LABELS[l.freq.status]}
+                  fg={STATUS_FREQUENCIA_COLORS[l.freq.status].fg}
+                  bg={STATUS_FREQUENCIA_COLORS[l.freq.status].bg}
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-zosa-ink">
           Quem está em risco de reprovar por falta ({emRiscoOrdenados.length})
         </h2>
         <p className="text-xs text-zosa-muted">
-          2 faltas = atenção, 3 faltas = risco (uma falta a mais já reprova). Bom ponto de partida pra secretaria
-          mandar mensagem essa semana.
+          Precisa de no mínimo 7 presenças pra aprovar. Uma falta a mais do que o limite já reprova. Bom ponto de
+          partida pra secretaria mandar mensagem essa semana.
         </p>
         {emRiscoOrdenados.length === 0 ? (
           <p className="card p-4 text-sm text-zosa-muted">Ninguém em risco no momento.</p>

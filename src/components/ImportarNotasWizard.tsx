@@ -12,7 +12,7 @@ export function ImportarNotasWizard({ cursoId }: { cursoId: string }) {
   const [erroLeitura, setErroLeitura] = useState<string | null>(null);
   const [colNome, setColNome] = useState(SEM_COLUNA);
   const [colNota, setColNota] = useState(SEM_COLUNA);
-  const [escalaDez, setEscalaDez] = useState(true);
+  const [escalaCem, setEscalaCem] = useState(true);
   const [enviando, setEnviando] = useState(false);
   const [erroEnvio, setErroEnvio] = useState<string | null>(null);
   const [resultado, setResultado] = useState<{ atualizadas: number; naoEncontradas: string[] } | null>(null);
@@ -50,7 +50,7 @@ export function ImportarNotasWizard({ cursoId }: { cursoId: string }) {
         .map((l) => {
           const notaTexto = (l[iNota] ?? "").replace(",", ".").trim();
           let nota = notaTexto === "" ? null : Number(notaTexto);
-          if (nota !== null && !escalaDez) nota = Math.round((nota / 100) * 10 * 10) / 10; // % -> 0-10
+          if (nota !== null && !escalaCem) nota = Math.round(nota * 10 * 10) / 10; // escala 0-10 -> 0-100
           return { nome: (l[iNome] ?? "").trim(), nota };
         })
         .filter((r) => r.nome && r.nota !== null);
@@ -131,8 +131,8 @@ export function ImportarNotasWizard({ cursoId }: { cursoId: string }) {
             </div>
           </div>
           <label className="flex items-center gap-2 text-sm text-zosa-ink">
-            <input type="checkbox" checked={escalaDez} onChange={(e) => setEscalaDez(e.target.checked)} />
-            A coluna de nota já está na escala 0 a 10 (desmarque se estiver em % de acertos)
+            <input type="checkbox" checked={escalaCem} onChange={(e) => setEscalaCem(e.target.checked)} />
+            A coluna de nota já está em % de acertos (0 a 100) — desmarque se estiver na escala 0 a 10
           </label>
 
           {previa.length > 0 && (

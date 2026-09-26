@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Curso, Encontro, Matricula, Pessoa, Presenca, Turma } from "@/lib/types";
+import type { Curso, Encontro, Justificativa, Matricula, Pessoa, Presenca, Turma } from "@/lib/types";
 
 export interface MatriculaComDados extends Matricula {
   pessoa: Pessoa;
   presencas: Presenca[];
+  justificativas: Justificativa[];
 }
 
 export interface DadosTurma {
@@ -32,10 +33,13 @@ export async function buscarDadosTurma(turmaId: string): Promise<DadosTurma | nu
   ]);
 
   const matriculaIds = (matriculasRaw ?? []).map((m) => m.id as string);
-  const { data: presencas } =
+  const [{ data: presencas }, { data: justificativas }] =
     matriculaIds.length > 0
-      ? await supabase.from("presencas").select("*").in("matricula_id", matriculaIds)
-      : { data: [] as Presenca[] };
+      ? await Promise.all([
+          supabase.from("presencas").select("*").in("matricula_id", matriculaIds),
+          supabase.from("justificativas").select("*").in("matricula_id", matriculaIds),
+        ])
+      : [{ data: [] as Presenca[] }, { data: [] as Justificativa[] }];
 
   const presencasPorMatricula = new Map<string, Presenca[]>();
   for (const p of presencas ?? []) {
@@ -44,10 +48,18 @@ export async function buscarDadosTurma(turmaId: string): Promise<DadosTurma | nu
     presencasPorMatricula.set(p.matricula_id, lista);
   }
 
+  const justificativasPorMatricula = new Map<string, Justificativa[]>();
+  for (const j of justificativas ?? []) {
+    const lista = justificativasPorMatricula.get(j.matricula_id) ?? [];
+    lista.push(j as Justificativa);
+    justificativasPorMatricula.set(j.matricula_id, lista);
+  }
+
   const matriculas: MatriculaComDados[] = (matriculasRaw ?? []).map((m) => ({
     ...(m as Matricula),
     pessoa: (m as unknown as { pessoa: Pessoa }).pessoa,
     presencas: presencasPorMatricula.get(m.id as string) ?? [],
+    justificativas: justificativasPorMatricula.get(m.id as string) ?? [],
   }));
   matriculas.sort((a, b) => a.pessoa.nome.localeCompare(b.pessoa.nome));
 

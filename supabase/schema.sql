@@ -20,7 +20,7 @@ create table cursos (
   rodada_id uuid not null references rodadas(id) on delete cascade,
   nome text not null,
   descricao text,
-  nota_minima numeric(4,2) not null default 7.0,
+  nota_minima numeric(5,2) not null default 60, -- escala 0 a 100
   created_at timestamptz not null default now()
 );
 create index cursos_rodada_id_idx on cursos(rodada_id);
@@ -79,7 +79,7 @@ create table matriculas (
   turma_id uuid not null references turmas(id) on delete cascade,
   rodada_id uuid not null references rodadas(id) on delete cascade,
   status text not null default 'ativo' check (status in ('ativo', 'cancelado', 'transferido')),
-  nota numeric(4,2),
+  nota numeric(5,2), -- escala 0 a 100
   created_at timestamptz not null default now(),
   unique (pessoa_id, turma_id)
 );
@@ -98,6 +98,21 @@ create table presencas (
 );
 create index presencas_matricula_id_idx on presencas(matricula_id);
 create index presencas_encontro_id_idx on presencas(encontro_id);
+
+-- ─── Justificativas de falta (aluno solicita, admin aprova/rejeita) ───────
+create table justificativas (
+  id uuid primary key default gen_random_uuid(),
+  matricula_id uuid not null references matriculas(id) on delete cascade,
+  encontro_id uuid not null references encontros(id) on delete cascade,
+  motivo text not null check (motivo in ('ministerio', 'atestado', 'trabalho')),
+  status text not null default 'pendente' check (status in ('pendente', 'aprovada', 'rejeitada')),
+  validado_por uuid references usuarios(id) on delete set null,
+  validado_em timestamptz,
+  created_at timestamptz not null default now(),
+  unique (matricula_id, encontro_id)
+);
+create index justificativas_matricula_id_idx on justificativas(matricula_id);
+create index justificativas_status_idx on justificativas(status);
 
 -- ─── Materiais (slides/apostilas postados pelos professores) ──────────────
 create table materiais (
@@ -122,6 +137,7 @@ alter table encontros enable row level security;
 alter table pessoas enable row level security;
 alter table matriculas enable row level security;
 alter table presencas enable row level security;
+alter table justificativas enable row level security;
 alter table materiais enable row level security;
 
 create policy "leitura publica" on rodadas for select using (true);
@@ -133,6 +149,7 @@ create policy "leitura publica" on encontros for select using (true);
 create policy "leitura publica" on pessoas for select using (true);
 create policy "leitura publica" on matriculas for select using (true);
 create policy "leitura publica" on presencas for select using (true);
+create policy "leitura publica" on justificativas for select using (true);
 create policy "leitura publica" on materiais for select using (true);
 
 -- ─── Storage: bucket público para os materiais (slides/apostilas) ─────────

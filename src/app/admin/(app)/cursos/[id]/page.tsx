@@ -40,6 +40,9 @@ export default async function AdminCursoPage({ params }: { params: Promise<{ id:
           <p className="text-sm text-zosa-muted">Nota mínima de aprovação: {(curso as Curso).nota_minima.toFixed(1)}</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link href={`/admin/cursos/${id}/qrcode`} className="btn-secondary">
+            QR code de presença
+          </Link>
           <Link href={`/admin/cursos/${id}/importar-notas`} className="btn-secondary">
             Importar notas da prova
           </Link>
@@ -59,14 +62,7 @@ export default async function AdminCursoPage({ params }: { params: Promise<{ id:
 
         return (
           <section key={turma.id} className="space-y-3">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <h2 className="text-sm font-semibold text-zosa-ink">Turma das {turma.horario}</h2>
-              <div className="flex gap-2">
-                <Link href={`/admin/turmas/${turma.id}/qrcode`} className="text-sm text-zosa-teal hover:underline">
-                  QR code de presença
-                </Link>
-              </div>
-            </div>
+            <h2 className="text-sm font-semibold text-zosa-ink">Turma das {turma.horario}</h2>
             <TurmaProfessoresManager turmaId={turma.id} atribuidos={atribuidos} todosProfessores={(professores ?? []) as Usuario[]} />
             <TurmaGerenciavel turmaId={turma.id} dados={dados} />
           </section>

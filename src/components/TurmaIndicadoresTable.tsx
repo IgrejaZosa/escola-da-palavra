@@ -34,8 +34,8 @@ export function TurmaIndicadoresTable({ dados }: { dados: DadosTurma }) {
         </thead>
         <tbody>
           {matriculas.map((m) => {
-            const freq = calcularFrequencia(encontros, m.presencas);
-            const aprovacao = calcularAprovacao(freq.faltas, m.nota, curso.nota_minima);
+            const freq = calcularFrequencia(encontros, m.presencas, m.justificativas);
+            const aprovacao = calcularAprovacao(freq, m.nota, curso.nota_minima);
             return (
               <tr key={m.id} className="border-b border-zosa-border last:border-0">
                 <td className="px-4 py-2.5 whitespace-nowrap">

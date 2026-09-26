@@ -8,6 +8,7 @@ import { useAdminSession } from "@/lib/admin-session";
 
 const NAV = [
   { href: "/admin/rodadas", label: "Rodadas" },
+  { href: "/admin/justificativas", label: "Justificativas" },
   { href: "/admin/usuarios", label: "Professores e admins" },
 ];
 

@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { LogoBand } from "@/components/LogoBand";
 import { Badge } from "@/components/Badge";
 import { MateriaisList } from "@/components/MateriaisList";
+import { AlunoAcaoPresenca } from "@/components/AlunoAcaoPresenca";
 import {
   calcularAprovacao,
   calcularFrequencia,
@@ -12,7 +13,8 @@ import {
   STATUS_FREQUENCIA_COLORS,
   STATUS_FREQUENCIA_LABELS,
 } from "@/lib/frequencia";
-import type { Curso, Encontro, Material, Pessoa, Presenca, Turma } from "@/lib/types";
+import { encontroMaisRelevante } from "@/lib/encontros";
+import type { Curso, Encontro, Justificativa, Material, Pessoa, Presenca, Turma } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -29,14 +31,25 @@ export default async function AlunoDashboardPage({ params }: { params: Promise<{
   const { data: curso } = await supabase.from("cursos").select("*").eq("id", (turma as Turma).curso_id).single();
   if (!curso) notFound();
 
-  const [{ data: encontros }, { data: presencas }, { data: materiais }] = await Promise.all([
+  const [{ data: encontros }, { data: presencas }, { data: justificativas }, { data: materiais }] = await Promise.all([
     supabase.from("encontros").select("*").eq("turma_id", turma.id).order("data"),
     supabase.from("presencas").select("*").eq("matricula_id", matriculaId),
+    supabase.from("justificativas").select("*").eq("matricula_id", matriculaId),
     supabase.from("materiais").select("*").eq("curso_id", curso.id).order("created_at", { ascending: false }),
   ]);
 
-  const freq = calcularFrequencia((encontros ?? []) as Encontro[], (presencas ?? []) as Presenca[]);
-  const aprovacao = calcularAprovacao(freq.faltas, matricula.nota, (curso as Curso).nota_minima);
+  const freq = calcularFrequencia(
+    (encontros ?? []) as Encontro[],
+    (presencas ?? []) as Presenca[],
+    (justificativas ?? []) as Justificativa[]
+  );
+  const aprovacao = calcularAprovacao(freq, matricula.nota, (curso as Curso).nota_minima);
+
+  const encontroAtual = encontroMaisRelevante((encontros ?? []) as Encontro[]);
+  const justificativaAtual =
+    encontroAtual ? ((justificativas ?? []) as Justificativa[]).find((j) => j.encontro_id === encontroAtual.id) ?? null : null;
+  const jaPresenteAtual =
+    encontroAtual ? (presencas ?? []).some((p) => p.encontro_id === encontroAtual.id && p.presente) : false;
 
   return (
     <main className="min-h-screen flex flex-col items-center">
@@ -50,6 +63,15 @@ export default async function AlunoDashboardPage({ params }: { params: Promise<{
           </p>
         </div>
 
+        {encontroAtual && (
+          <AlunoAcaoPresenca
+            matriculaId={matriculaId}
+            encontro={encontroAtual}
+            jaPresente={jaPresenteAtual}
+            justificativa={justificativaAtual}
+          />
+        )}
+
         <div className="card p-4 space-y-3">
           <div className="grid grid-cols-2 gap-3 text-center">
             <div>
@@ -58,7 +80,7 @@ export default async function AlunoDashboardPage({ params }: { params: Promise<{
             </div>
             <div>
               <p className="text-2xl font-bold text-zosa-ink">{freq.faltas}</p>
-              <p className="text-xs text-zosa-muted">Faltas (máx. 3)</p>
+              <p className="text-xs text-zosa-muted">Faltas (limite: {freq.faltasPermitidas})</p>
             </div>
           </div>
           <div className="flex flex-wrap justify-center gap-2">

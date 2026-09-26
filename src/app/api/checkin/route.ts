@@ -2,25 +2,29 @@ import { NextRequest, NextResponse } from "next/server";
 import { erroJson } from "@/lib/api-helpers";
 import { createServiceClient } from "@/lib/supabase/server";
 
-/** Rota pública (sem login — é o autoatendimento do QR code). Não exige que
- * o encontro seja "de hoje" de propósito: dá pra acessar o link fora do
- * dia/horário exato da aula (ex: corrigir um esquecimento na segunda) e a
- * presença ainda conta pro encontro certo - quem decide qual encontro é
- * esse é o servidor (`encontroMaisRelevante`, calculado na própria página
- * de check-in), não o cliente. `marcado_em` (default now() no banco)
- * continua guardando o momento real em que a pessoa registrou. Ainda
- * valida que a matrícula pertence à mesma turma do encontro, pra um POST
- * forjado não conseguir puxar alguém de outra turma. */
+/** Rota pública (sem login — é o autoatendimento do QR code e da aba do
+ * aluno). Trava de domingo: só marca presença/falta se o encontro for
+ * exatamente o de hoje — fora do dia da aula, a pessoa só pode justificar
+ * (ver /api/justificativas), pra não dar pra "se autodeclarar presente"
+ * numa aula de outro dia. Ainda valida que a matrícula pertence à mesma
+ * turma do encontro, pra um POST forjado não conseguir puxar alguém de
+ * outra turma. */
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
   const matriculaId = body.matricula_id as string | undefined;
   const encontroId = body.encontro_id as string | undefined;
+  const presente = body.presente === false ? false : true;
   if (!matriculaId || !encontroId) return erroJson("Dados incompletos.");
 
   const supabase = createServiceClient();
 
   const { data: encontro } = await supabase.from("encontros").select("*").eq("id", encontroId).single();
   if (!encontro) return erroJson("Encontro não encontrado.", 404);
+
+  const hojeIso = new Date().toISOString().slice(0, 10);
+  if (encontro.data !== hojeIso) {
+    return erroJson("Presença só pode ser marcada no dia do encontro. Fora do dia, use a opção de justificar falta.", 400);
+  }
 
   const { data: matricula } = await supabase.from("matriculas").select("*").eq("id", matriculaId).single();
   if (!matricula || matricula.turma_id !== encontro.turma_id) {
@@ -34,9 +38,14 @@ export async function POST(request: NextRequest) {
     .eq("matricula_id", matriculaId)
     .eq("encontro_id", encontroId)
     .maybeSingle();
-  if (existente) return NextResponse.json({ ok: true, jaEstava: true });
+  if (existente && existente.presente === presente) return NextResponse.json({ ok: true, jaEstava: true });
 
-  const { error } = await supabase.from("presencas").insert({ matricula_id: matriculaId, encontro_id: encontroId });
+  const { error } = await supabase
+    .from("presencas")
+    .upsert(
+      { matricula_id: matriculaId, encontro_id: encontroId, presente, marcado_em: new Date().toISOString() },
+      { onConflict: "matricula_id,encontro_id" }
+    );
   if (error) return erroJson(error.message, 500);
 
   return NextResponse.json({ ok: true, jaEstava: false });

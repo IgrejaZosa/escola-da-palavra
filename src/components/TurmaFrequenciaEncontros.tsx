@@ -4,7 +4,15 @@ import { Fragment, useState } from "react";
 import { useRouter } from "next/navigation";
 import { resumoPorEncontro } from "@/lib/frequencia-por-encontro";
 import { WhatsAppLink } from "@/components/WhatsAppLink";
+import { Badge } from "@/components/Badge";
+import { MOTIVO_JUSTIFICATIVA_LABELS } from "@/lib/types";
 import type { DadosTurma, MatriculaComDados } from "@/lib/dados-turma";
+
+const STATUS_JUSTIFICATIVA_COLORS = {
+  pendente: { fg: "var(--color-warn)", bg: "var(--color-warn-bg)" },
+  aprovada: { fg: "var(--color-ok)", bg: "var(--color-ok-bg)" },
+  rejeitada: { fg: "var(--color-danger)", bg: "var(--color-danger-bg)" },
+} as const;
 
 export function TurmaFrequenciaEncontros({ dados }: { dados: DadosTurma }) {
   const router = useRouter();
@@ -78,6 +86,7 @@ export function TurmaFrequenciaEncontros({ dados }: { dados: DadosTurma }) {
                           alterandoId={alterandoId}
                           onAlterar={(matriculaId) => alterarPresenca(r.encontro.id, matriculaId, true)}
                           rotuloAcao="Marcar presença"
+                          encontroId={r.encontro.id}
                         />
                       </div>
                     </td>
@@ -98,12 +107,14 @@ function ListaPessoas({
   alterandoId,
   onAlterar,
   rotuloAcao,
+  encontroId,
 }: {
   titulo: string;
   pessoas: MatriculaComDados[];
   alterandoId: string | null;
   onAlterar: (matriculaId: string) => void;
   rotuloAcao: string;
+  encontroId?: string;
 }) {
   return (
     <div>
@@ -112,11 +123,27 @@ function ListaPessoas({
         <p className="text-xs text-zosa-muted">Ninguém.</p>
       ) : (
         <ul className="space-y-1.5 max-h-64 overflow-y-auto">
-          {pessoas.map((m) => (
+          {pessoas.map((m) => {
+            const justificativa = encontroId ? m.justificativas.find((j) => j.encontro_id === encontroId) : undefined;
+            return (
             <li key={m.id} className="flex items-center justify-between gap-2 text-sm">
               <div className="min-w-0">
                 <p className="text-zosa-ink truncate">{m.pessoa.nome}</p>
                 <WhatsAppLink telefone={m.pessoa.telefone} nome={m.pessoa.nome} />
+                {justificativa && (
+                  <Badge
+                    label={`${MOTIVO_JUSTIFICATIVA_LABELS[justificativa.motivo]} · ${
+                      justificativa.status === "pendente"
+                        ? "pendente"
+                        : justificativa.status === "aprovada"
+                          ? "aprovada"
+                          : "rejeitada"
+                    }`}
+                    fg={STATUS_JUSTIFICATIVA_COLORS[justificativa.status].fg}
+                    bg={STATUS_JUSTIFICATIVA_COLORS[justificativa.status].bg}
+                    className="mt-0.5"
+                  />
+                )}
               </div>
               <button
                 onClick={(e) => {
@@ -129,7 +156,8 @@ function ListaPessoas({
                 {alterandoId === m.id ? "..." : rotuloAcao}
               </button>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </div>
