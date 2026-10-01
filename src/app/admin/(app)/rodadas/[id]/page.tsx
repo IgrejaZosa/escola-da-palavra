@@ -5,6 +5,7 @@ import { CriarCursoForm } from "@/components/CriarCursoForm";
 import { RodadaActions } from "@/components/RodadaActions";
 import { EditarRodadaForm } from "@/components/EditarRodadaForm";
 import { ExcluirCursoButton } from "@/components/ExcluirCursoButton";
+import { ExcluirRodadaButton } from "@/components/ExcluirRodadaButton";
 import { Badge } from "@/components/Badge";
 import type { Curso, Rodada } from "@/lib/types";
 
@@ -45,6 +46,7 @@ export default async function AdminRodadaPage({ params }: { params: Promise<{ id
       <div className="flex flex-wrap gap-2">
         <RodadaActions rodada={rodada as Rodada} temCursos={(cursos ?? []).length > 0} />
         <EditarRodadaForm rodada={rodada as Rodada} />
+        <ExcluirRodadaButton rodadaId={id} rodadaNome={(rodada as Rodada).nome} />
       </div>
 
       <section className="space-y-3">
