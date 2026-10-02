@@ -126,8 +126,8 @@ export function JustificarFaltaCard({
           {justificativasOrdenadas.map((j) => {
             const encontro = encontrosPorId.get(j.encontro_id);
             return (
-              <div key={j.id} className="flex items-center justify-between gap-2 text-xs">
-                <span className="text-zosa-muted whitespace-nowrap">
+              <div key={j.id} className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs">
+                <span className="text-zosa-muted">
                   {encontro ? formatarData(encontro.data) : ""} · {MOTIVO_JUSTIFICATIVA_LABELS[j.motivo]}
                 </span>
                 <Badge

@@ -112,7 +112,7 @@ export interface Justificativa {
 }
 
 export const STATUS_JUSTIFICATIVA_LABELS: Record<StatusJustificativa, string> = {
-  pendente: "Aguardando validação do admin",
+  pendente: "Aguardando validação",
   aprovada: "Aprovada",
   rejeitada: "Rejeitada",
 };
