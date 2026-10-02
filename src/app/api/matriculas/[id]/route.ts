@@ -20,3 +20,17 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (error) return erroJson(error.message, 500);
   return NextResponse.json(data);
 }
+
+/** Exclusão definitiva da matrícula: apaga também (em cascata) as presenças
+ * e justificativas dela. A pessoa continua cadastrada. Irreversível — a tela
+ * que chama é quem pede a confirmação. */
+export async function DELETE(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { erro } = await exigirUsuario("admin");
+  if (erro) return erro;
+
+  const { id } = await params;
+  const supabase = createServiceClient();
+  const { error } = await supabase.from("matriculas").delete().eq("id", id);
+  if (error) return erroJson(error.message, 500);
+  return NextResponse.json({ ok: true });
+}
